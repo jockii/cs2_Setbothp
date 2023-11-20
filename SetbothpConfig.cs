@@ -5,6 +5,6 @@ namespace Setbothp;
 
 public class SetbothpConfig : BasePluginConfig
 {
-    [JsonPropertyName("INPUT_BOT_HP")]
-    public int INPUT_BOT_HP { get; set; } = 100;
+    [JsonPropertyName("SET_BOT_HP")]
+    public int SET_BOT_HP { get; set; } = 100;
 }

@@ -14,7 +14,7 @@ public class Setbothp : BasePlugin, IPluginConfig<SetbothpConfig>
 
     public SetbothpConfig Config { get; set; } = new();
 
-    private int _INPUT_BOT_HP = 0;
+    private int _SET_BOT_HP = 0;
 
     public override void Load(bool hotReload)
     {
@@ -24,34 +24,44 @@ public class Setbothp : BasePlugin, IPluginConfig<SetbothpConfig>
     public void OnConfigParsed(SetbothpConfig config)
     {
         this.Config = config;
-        _INPUT_BOT_HP = config.INPUT_BOT_HP;
+        _SET_BOT_HP = config.SET_BOT_HP;
     }
     // load CFG func
     //public void LoadConfig(SetbothpConfig config)
     //{
     //    Config = config;
     //}
+    public async void Pause()
+    {
+        await Task.Delay(3000);
+    }
     public void Log(string msg) 
     { 
         Server.PrintToChatAll(msg); 
     }
-
-    [ConsoleCommand("css_setbothp_reload", "Reload [Setbothp] plugin")]
-    public void OnCommandReloadConfig(CCSPlayerController? controller, CommandInfo command)
+    public void SendConsoleCommand(string command)
     {
-        if (controller == null) return;
-        Server.ExecuteCommand("css_plugins stop Setbothp");
-        Server.ExecuteCommand("css_plugins start Setbothp");
-        controller.PrintToChat("[Setbothp] Plugin was reloaded. OK!");
-        //command.ReplyToCommand("");
-
-        const string msg = "[Setbothp] configuration successfully rebooted!";
-        Console.WriteLine(msg);
+        Server.ExecuteCommand(command);
     }
 
     public const int STANDART_BOT_HP = 100;
     public const int MIN_BOT_HP = 1;
     public const int MAX_BOT_HP = 9999999;
+
+    [ConsoleCommand("css_setbothp_reload")] 
+    public void OnCommandSetBotHp(CCSPlayerController? controller, CommandInfo command)
+    {
+        if (controller == null) return;
+        SendConsoleCommand("css_plugins stop Setbothp");
+        Pause();
+        SendConsoleCommand("css_plugins start Setbothp");
+
+        controller.PrintToChat("");
+        //command.ReplyToCommand("");
+
+        const string msg = "[Setbothp] configuration successfully rebooted!";
+        Console.WriteLine(msg);
+    }
 
     public void SetBotHp(List<CCSPlayerController> playersList)
     {
@@ -60,12 +70,12 @@ public class Setbothp : BasePlugin, IPluginConfig<SetbothpConfig>
             if (player.IsBot)
             {
                 //Log("--- find bot");
-                if (_INPUT_BOT_HP >= MIN_BOT_HP  || _INPUT_BOT_HP <= MAX_BOT_HP)
+                if (_SET_BOT_HP >= MIN_BOT_HP  || _SET_BOT_HP <= MAX_BOT_HP)
                 {
-                    player.Pawn.Value.Health = _INPUT_BOT_HP;
+                    player.Pawn.Value.Health = _SET_BOT_HP;
                     //Log($"--- set bot HP to {_INPUT_BOT_HP}HP <--");
                 }
-                else if (_INPUT_BOT_HP < MIN_BOT_HP || _INPUT_BOT_HP > MAX_BOT_HP)
+                else if (_SET_BOT_HP < MIN_BOT_HP || _SET_BOT_HP > MAX_BOT_HP)
                 {
                     player.Pawn.Value.Health = STANDART_BOT_HP;
                     //Log($"else if === STANDART_BOT_HP");

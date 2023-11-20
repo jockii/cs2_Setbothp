@@ -2,70 +2,54 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
-using System.Text.Json;
 
 namespace Setbothp;
 
-public class Setbothp : BasePlugin
+public class Setbothp : BasePlugin, IPluginConfig<SetbothpConfig>
 {
     public override string ModuleName => "Setbothp";
 
     public override string ModuleVersion => "v1.0.0";
-    public override string ModuleAuthor => "jackson tougher";
+    public override string ModuleAuthor => "\"jackson tougher\"";
 
-    private static Config _config = null!;
+    public SetbothpConfig Config { get; set; } = new();
 
-    //private uint _INPUT_BOT_HP = 0;
+    private int _INPUT_BOT_HP = 0;
 
     public override void Load(bool hotReload)
     {
-        Console.WriteLine($"Plugin {ModuleName} {ModuleVersion} by {ModuleAuthor} was loaded =D");
-        _config = LoadConfig();
+        Console.WriteLine($"Plugin [Setbothp] {ModuleVersion} by {ModuleAuthor} was loaded =D");
     }
 
-    private Config LoadConfig()
+    public void OnConfigParsed(SetbothpConfig config)
     {
-        var configPath = Path.Combine(ModuleDirectory, "setbothp.json");
-
-        if (!File.Exists(configPath)) return CreateConfig(configPath);
-
-        var config = JsonSerializer.Deserialize<Config>(File.ReadAllText(configPath))!;
-
-        return config;
+        this.Config = config;
+        _INPUT_BOT_HP = config.INPUT_BOT_HP;
     }
-
-    private Config CreateConfig(string configPath)
-    {
-        var config = new Config
-        {
-            INPUT_BOT_HP = 100
-        };
-
-        File.WriteAllText(configPath,
-            JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true }));
-
-        Console.WriteLine("[SetBotHp] The configuration was successfully saved to a file: " + configPath);
-
-        return config;
-    }
-
-    [ConsoleCommand("css_setbothp_reload")]
-    public void OnCommandReloadConfig(CCSPlayerController? controller, CommandInfo command)
-    {
-        if (controller == null) return;
-        _config = LoadConfig();
-
-        const string msg = "configuration successfully rebooted!";
-        Console.WriteLine(msg);
-    }
-
+    // load CFG func
+    //public void LoadConfig(SetbothpConfig config)
+    //{
+    //    Config = config;
+    //}
     public void Log(string msg) 
     { 
         Server.PrintToChatAll(msg); 
     }
 
+    [ConsoleCommand("css_setbothp_reload", "Reload [Setbothp] plugin")]
+    public void OnCommandReloadConfig(CCSPlayerController? controller, CommandInfo command)
+    {
+        if (controller == null) return;
+        Server.ExecuteCommand("css_plugins stop Setbothp");
+        Server.ExecuteCommand("css_plugins start Setbothp");
+        controller.PrintToChat("[Setbothp] Plugin was reloaded. OK!");
+        //command.ReplyToCommand("");
 
-    public int STANDART_BOT_HP = 100;
+        const string msg = "[Setbothp] configuration successfully rebooted!";
+        Console.WriteLine(msg);
+    }
+
+    public const int STANDART_BOT_HP = 100;
     public const int MIN_BOT_HP = 1;
     public const int MAX_BOT_HP = 9999999;
 
@@ -76,30 +60,27 @@ public class Setbothp : BasePlugin
             if (player.IsBot)
             {
                 Log("--- find bot");
-                if (1 >= MIN_BOT_HP  || 1 <= MAX_BOT_HP)
+                if (_INPUT_BOT_HP >= MIN_BOT_HP  || _INPUT_BOT_HP <= MAX_BOT_HP)
                 {
-                    player.Pawn.Value.Health = 1;
-                    Log("--- set bot HP to 1HP");
+                    player.Pawn.Value.Health = _INPUT_BOT_HP;
+                    Log($"--- set bot HP to {_INPUT_BOT_HP}HP <--");
                 }
-                else if (0 < MIN_BOT_HP || 200 > MAX_BOT_HP)
+                else if (_INPUT_BOT_HP < MIN_BOT_HP || _INPUT_BOT_HP > MAX_BOT_HP)
                 {
                     player.Pawn.Value.Health = STANDART_BOT_HP;
+                    Log($"else if === STANDART_BOT_HP");
                     Console.WriteLine($"[{ModuleName}] incorrect value. Bot health set to standart value: 100HP");
                 }
             }
         });
     }
     [GameEventHandler]
-    public HookResult OnPlayerSpawn(EventRoundStart @event, GameEventInfo @info)
+    public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo @info)
     {
-        Log("--- Round start  ---");
+        Log("--- Round Event  ---");
         var players = Utilities.GetPlayers();
         SetBotHp(players);
         Log("-- call func SetBotHp() on start round ");
         return HookResult.Continue;
-    }
-    public class Config
-    {
-        public uint INPUT_BOT_HP { get; set; }
     }
 }

@@ -26,11 +26,7 @@ public class Setbothp : BasePlugin, IPluginConfig<SetbothpConfig>
         this.Config = config;
         _SET_BOT_HP = config.SET_BOT_HP;
     }
-    // load CFG func
-    //public void LoadConfig(SetbothpConfig config)
-    //{
-    //    Config = config;
-    //}
+
     public async void Pause()
     {
         await Task.Delay(3000);

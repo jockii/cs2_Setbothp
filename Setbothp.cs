@@ -3,13 +3,13 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 
-namespace Setbothp;
 
+namespace Setbothp;
 public class Setbothp : BasePlugin, IPluginConfig<SetbothpConfig>
 {
     public override string ModuleName => "Setbothp";
 
-    public override string ModuleVersion => "v1.0.0";
+    public override string ModuleVersion => "v1.1.0";
     public override string ModuleAuthor => "\"jackson tougher\"";
 
     public SetbothpConfig Config { get; set; } = new();
@@ -51,15 +51,14 @@ public class Setbothp : BasePlugin, IPluginConfig<SetbothpConfig>
         SendConsoleCommand("css_plugins stop Setbothp");
         Pause();
         SendConsoleCommand("css_plugins start Setbothp");
-
-        controller.PrintToChat("");
+        controller.PrintToChat("[Setbothp] config reload... OK!");
         //command.ReplyToCommand("");
 
         const string msg = "[Setbothp] configuration successfully rebooted!";
-        Console.WriteLine(msg);
+        SendConsoleCommand(msg);
     }
 
-    public void SetBotHp(List<CCSPlayerController> playersList)
+    public void SetBotHp(List<CCSPlayerController> playersList) 
     {
         playersList.ForEach(player =>
         {
@@ -75,7 +74,7 @@ public class Setbothp : BasePlugin, IPluginConfig<SetbothpConfig>
                 {
                     player.Pawn.Value.Health = STANDART_BOT_HP;
                     //Log($"else if === STANDART_BOT_HP");
-                    Console.WriteLine($"[{ModuleName}] incorrect value. Bot health set to standart value: 100HP");
+                    SendConsoleCommand($"[{ModuleName}] incorrect value. Bot health set to standart value: 100HP");
                 }
             }
         });

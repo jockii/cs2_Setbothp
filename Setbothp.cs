@@ -39,6 +39,12 @@ public class Setbothp : BasePlugin, IPluginConfig<SetbothpConfig>
     {
         Server.ExecuteCommand(command);
     }
+    public void CheatsCommand(string commamd)
+    {
+        SendConsoleCommand("sv_cheats true");
+        SendConsoleCommand(commamd);
+        SendConsoleCommand("sv_cheats false");
+    }
 
     public const int STANDART_BOT_HP = 100;
     public const int MIN_BOT_HP = 1;
@@ -48,17 +54,24 @@ public class Setbothp : BasePlugin, IPluginConfig<SetbothpConfig>
     public void OnCommandSetBotHp(CCSPlayerController? controller, CommandInfo command)
     {
         if (controller == null) return;
-        SendConsoleCommand("css_plugins stop Setbothp");
-        Pause();
-        SendConsoleCommand("css_plugins start Setbothp");
-        controller.PrintToChat("[Setbothp] config reload... OK!");
-        //command.ReplyToCommand("");
-
-        const string msg = "[Setbothp] configuration successfully rebooted!";
-        SendConsoleCommand(msg);
+        if (controller.SteamID == 1111111111111 || controller.SteamID == 00000000000000) 
+        {
+            if (Regex.IsMatch(command.GetArg(1), @"^\d+$"))
+            {
+                SET_BOT_HP = int.Parse(command.GetArg(1));
+                controller.PrintToChat($"{ChatColors.Red}[Setbothp]{ChatColors.Olive}config reload... {ChatColors.Green}OK!");
+                controller.PrintToChat($"New Bot HP: {ChatColors.Green}{SET_BOT_HP}");
+            }
+            else
+            {
+                SET_BOT_HP = STANDART_BOT_HP;
+                controller.PrintToChat($"{ChatColors.Red}Incorrect value! Please input correct number");
+            }
+        }
+        else
+            controller.PrintToChat($"{ChatColors.Red}You are not Admin!!!");
     }
-
-    public void SetBotHp(List<CCSPlayerController> playersList) 
+    public void SetBotHp(List<CCSPlayerController> playersList, int bot_hp)
     {
         playersList.ForEach(player =>
         {
@@ -82,7 +95,8 @@ public class Setbothp : BasePlugin, IPluginConfig<SetbothpConfig>
     [GameEventHandler]
     public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo @info)
     {
-        //Log("--- Round Event  ---");
+        LogToChatAll(SET_BOT_HP.ToString());
+        //LogToChatAll("--- Round Event  ---");
         var players = Utilities.GetPlayers();
         SetBotHp(players);
         //Log("-- call func SetBotHp() on start round ");

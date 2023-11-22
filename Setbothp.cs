@@ -63,16 +63,11 @@ public class Setbothp : BasePlugin
         {
             if (player.IsBot)
             {
-                //LogToChatAll("--- find bot");
                 if (bot_hp >= MIN_BOT_HP && bot_hp <= MAX_BOT_HP)
-                {
                     player.Pawn.Value.Health = bot_hp;
-                    //($"--- set bot HP to {bot_hp}HP <--");
-                }
                 else if (bot_hp < MIN_BOT_HP || bot_hp > MAX_BOT_HP)
                 {
                     player.Pawn.Value.Health = STANDART_BOT_HP;
-                    //LogToChatAll($"else if === STANDART_BOT_HP");
                     SendConsoleCommand($"[{ModuleName}] incorrect value. Bot health set to standart value: 100HP");
                 }
             }
@@ -81,11 +76,8 @@ public class Setbothp : BasePlugin
     [GameEventHandler]
     public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo @info)
     {
-        LogToChatAll(SET_BOT_HP.ToString());
-        //LogToChatAll("--- Round Event  ---");
         var players = Utilities.GetPlayers();
         SetBotHp(players, SET_BOT_HP);
-        //LogToChatAll("-- call func SetBotHp() on start round ");
         return HookResult.Continue;
     }
 }

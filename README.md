@@ -6,7 +6,7 @@
 ### `About`
 ![image](https://github.com/jackson-tougher/cs2_Setbothp/assets/119735356/823ab6cb-f073-44cd-b2a0-e34c46786174)
 
-Set your HP value for bots
+Just set your HP value for bots
 ### `Function`
 You can set the bot_HP value in the config, which will be applied when the server starts, or set the bots HP through a command from the game 
 (the HP will be applied during a new round and will be active until the server is restarted)

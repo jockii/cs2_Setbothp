@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 namespace Setbothp;
 public class Config
 {
-    public List<ulong> admins_ID64 { get; set; } = new List<ulong>();
+    public List<ulong> admins { get; set; } = new List<ulong>();
     public int bot_HP { get; set; }
 }
 
@@ -28,7 +28,7 @@ public class Setbothp : BasePlugin
         var configPath = Path.Join(ModuleDirectory, "Config.json");
         if (!File.Exists(configPath))
         {
-            config.admins_ID64.Add(76561199414091272); config.admins_ID64.Add(76561199414091272);
+            config.admins.Add(76561199414091272); config.admins.Add(76561199414091272);
             config.bot_HP = 100;
             File.WriteAllText(configPath, JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
         }
@@ -61,7 +61,7 @@ public class Setbothp : BasePlugin
     public void OnCommandSetBotHp(CCSPlayerController? controller, CommandInfo command)
     {
         if (controller == null) return;
-        if (config.admins_ID64.Exists(adminID => adminID == controller.SteamID))
+        if (config.admins.Exists(adminID => adminID == controller.SteamID))
         {
             if (Regex.IsMatch(command.GetArg(1), @"^\d+$"))
             {
@@ -87,7 +87,7 @@ public class Setbothp : BasePlugin
     public void OnBotikiConfigReload(CCSPlayerController? controller, CommandInfo command)
     {
         if (controller == null) return;
-        if (config.admins_ID64.Exists(adminID => adminID == controller.SteamID))
+        if (config.admins.Exists(adminID => adminID == controller.SteamID))
         {
             OnConfigReload();
             controller.PrintToChat($" {ChatColors.Red}[ {ChatColors.Purple}Botiki {ChatColors.Red}] {ChatColors.Olive}...configuration was reloaded. {ChatColors.Green}OK!");

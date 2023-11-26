@@ -4,88 +4,101 @@ using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
-using System.Drawing;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Setbothp;
+public class Config
+{
+    public List<ulong> admins { get; set; } = new List<ulong>();
+    public int bot_HP { get; set; }
+}
 
 [MinimumApiVersion(65)]
 public class Setbothp : BasePlugin
 {
     public override string ModuleName => "Setbothp";
 
-    public override string ModuleVersion => "v1.1.0";
-    public override string ModuleAuthor => "| jackson tougher |";
+    public override string ModuleVersion => "v2.0.0";
+
+    public override string ModuleAuthor => "jackson tougher";
+    public Config config = new Config();
     public override void Load(bool hotReload)
     {
-        Console.WriteLine($"Plugin [Setbothp] {ModuleVersion} by {ModuleAuthor} was loaded =D");
-    }
-    public void LogToChatAll(string msg)
-    {
-        Server.PrintToChatAll(msg);
-    }
-    public void SendConsoleCommand(string command)
-    {
-        Server.ExecuteCommand(command);
-    }
+        var configPath = Path.Join(ModuleDirectory, "Config.json");
+        if (!File.Exists(configPath))
+        {
+            config.admins.Add(76561199414091271);
+            config.bot_HP = 100;
+            File.WriteAllText(configPath, JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
+        }
+        else config = JsonSerializer.Deserialize<Config>(File.ReadAllText(configPath));
 
-    public const int STANDART_BOT_HP = 100;
-    public const int MIN_BOT_HP = 1;
-    public const int MAX_BOT_HP = 9999999;
-    public int SET_BOT_HP = 0;
-
-    [ConsoleCommand("css_setbothp")]
+        Console.WriteLine($"Plugin: {ModuleName} ver:{ModuleVersion} by {ModuleAuthor} has been loaded =)");
+    }
+    public const int MIN_BOT_HP = 1;                                  //
+    public const int STANDART_BOT_HP = 100;                          //
+    public const int MAX_BOT_HP = 9999999;                          //
+    public void OnConfigReload()
+    {
+        var configPath = Path.Join(ModuleDirectory, "Config.json");
+        config = JsonSerializer.Deserialize<Config>(File.ReadAllText(configPath));
+    }
+    public void SetBotHp(List<CCSPlayerController> playersList)
+    {
+        playersList.ForEach(player =>
+        {
+            if (player.IsValid && player.IsBot && !player.IsHLTV)
+            {
+                if (config.bot_HP >= MIN_BOT_HP && config.bot_HP <= MAX_BOT_HP)
+                    player.Pawn.Value.Health = config.bot_HP;
+                else if (config.bot_HP < MIN_BOT_HP || config.bot_HP > MAX_BOT_HP)
+                    player.Pawn.Value.Health = STANDART_BOT_HP;
+            }
+        });
+    }
+    [ConsoleCommand("css_bot_hp")]
     public void OnCommandSetBotHp(CCSPlayerController? controller, CommandInfo command)
     {
         if (controller == null) return;
-        if (controller.SteamID == 1111111111111 || controller.SteamID == 00000000000000)
+        if (config.admins.Exists(adminID => adminID == controller.SteamID))
         {
             if (Regex.IsMatch(command.GetArg(1), @"^\d+$"))
             {
-                SET_BOT_HP = int.Parse(command.GetArg(1));
-                controller.PrintToChat($" {ChatColors.Red}[Setbothp]{ChatColors.Olive}config reload... {ChatColors.Green}OK!");
-                controller.PrintToChat($"New Bot HP: {ChatColors.Green}{SET_BOT_HP}");
+                if (int.Parse(command.GetArg(1)) == 0)
+                {
+                    controller.PrintToChat($" {ChatColors.Red}[ {ChatColors.Purple}Botiki {ChatColors.Red}] {ChatColors.Red}Bot HP can`t be zero!");
+                }
+                else
+                {
+                    config.bot_HP = int.Parse(command.GetArg(1));
+                    controller.PrintToChat($" {ChatColors.Red}[ {ChatColors.Purple}Botiki {ChatColors.Red}] {ChatColors.Default}New Bot HP: {ChatColors.Green}{config.bot_HP}");
+                }
             }
             else
             {
-                SET_BOT_HP = STANDART_BOT_HP;
                 controller.PrintToChat($" {ChatColors.Red}Incorrect value! Please input correct number");
             }
         }
         else
             controller.PrintToChat($" {ChatColors.Red}You are not Admin!!!");
     }
-    public void SetBotHp(List<CCSPlayerController> playersList, int bot_hp)
+    [ConsoleCommand("css_bothp_reload")]
+    public void OnBotikiConfigReload(CCSPlayerController? controller, CommandInfo command)
     {
-        playersList.ForEach(player =>
+        if (controller == null) return;
+        if (config.admins.Exists(adminID => adminID == controller.SteamID))
         {
-            if (player.IsBot)
-            {
-                //LogToChatAll("--- find bot");
-                if (bot_hp >= MIN_BOT_HP && bot_hp <= MAX_BOT_HP)
-                {
-                    player.Pawn.Value.Health = bot_hp;
-                    //($"--- set bot HP to {bot_hp}HP <--");
-                }
-                else if (bot_hp < MIN_BOT_HP || bot_hp > MAX_BOT_HP)
-                {
-                    player.Pawn.Value.Health = STANDART_BOT_HP;
-                    //LogToChatAll($"else if === STANDART_BOT_HP");
-                    SendConsoleCommand($"[{ModuleName}] incorrect value. Bot health set to standart value: 100HP");
-                }
-            }
-        });
+            OnConfigReload();
+            controller.PrintToChat($" {ChatColors.Red}[ {ChatColors.Purple}Botiki {ChatColors.Red}] {ChatColors.Olive}...configuration was reloaded. {ChatColors.Green}OK!");
+        }
+        else
+            controller.PrintToChat($" {ChatColors.Red}You are not Admin!!!");
     }
     [GameEventHandler]
-    public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo @info)
+    public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
     {
-        LogToChatAll(SET_BOT_HP.ToString());
-        //LogToChatAll("--- Round Event  ---");
-        var players = Utilities.GetPlayers();
-        SetBotHp(players, SET_BOT_HP);
-        //LogToChatAll("-- call func SetBotHp() on start round ");
+        SetBotHp(Utilities.GetPlayers());
         return HookResult.Continue;
     }
 }

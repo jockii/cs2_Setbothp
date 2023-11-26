@@ -28,7 +28,7 @@ public class Setbothp : BasePlugin
         var configPath = Path.Join(ModuleDirectory, "Config.json");
         if (!File.Exists(configPath))
         {
-            config.admins.Add(76561199414091272); config.admins.Add(76561199414091272);
+            config.admins.Add(76561199414091271);
             config.bot_HP = 100;
             File.WriteAllText(configPath, JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
         }
